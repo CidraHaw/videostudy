@@ -13,11 +13,11 @@
       --border: #334155;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    body { background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
     
     .container { width: 100%; max-width: 480px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    h2 { font-size: 1.4rem; margin-bottom: 12px; color: var(--accent); }
-    p { font-size: 0.95rem; line-height: 1.5; margin-bottom: 16px; color: #cbd5e1; }
+    h2 { font-size: 1.3rem; margin-bottom: 12px; color: var(--accent); }
+    p { font-size: 0.9rem; line-height: 1.5; margin-bottom: 16px; color: #cbd5e1; }
     
     .input-group { margin-bottom: 16px; }
     label { display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 600; }
@@ -26,35 +26,43 @@
     button { width: 100%; padding: 12px; background: var(--accent); color: #0f172a; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
     button:hover { filter: brightness(1.1); }
     
-    /* Video Player Screen */
-    #feed-screen { display: none; width: 100%; max-width: 400px; height: 85vh; max-height: 750px; background: black; border-radius: 20px; overflow: hidden; position: relative; flex-direction: column; }
+    /* Smartphone Feed Container */
+    #feed-screen { display: none; width: 100%; max-width: 360px; height: 80vh; max-height: 650px; background: #000; border-radius: 20px; overflow: hidden; position: relative; flex-direction: column; justify-content: center; align-items: center; border: 2px solid var(--border); }
     video { width: 100%; height: 100%; object-fit: cover; }
     
-    .overlay-friction {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75);
-      display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center;
-    }
-    .overlay-friction button { width: auto; padding: 14px 28px; font-size: 1.1rem; }
+    /* Animierter Dummy falls keine Videos hinterlegt sind */
+    #dummy-video { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; color: white; }
+    .dummy-progress { width: 80%; height: 6px; background: rgba(255,255,255,0.3); border-radius: 3px; margin-top: 20px; overflow: hidden; }
+    .dummy-bar { width: 0%; height: 100%; background: var(--accent); }
 
-    /* Questionnaire */
-    .likert-item { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    /* Friction Overlay (Gruppe B) */
+    .overlay-friction {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.92);
+      display: none; flex-direction: column; justify-content: center; align-items: center; padding: 24px; text-align: center; z-index: 10;
+    }
+    .overlay-friction button { width: auto; padding: 14px 24px; font-size: 1rem; }
+
+    /* Fragebogen */
+    .likert-item { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
     .likert-scale { display: flex; justify-content: space-between; margin-top: 8px; }
     .likert-scale label { font-size: 0.75rem; text-align: center; font-weight: normal; cursor: pointer; }
     .likert-scale input { display: block; margin: 4px auto 0 auto; }
     
     .hidden { display: none !important; }
+    .badge { display: inline-block; padding: 3px 8px; background: #334155; border-radius: 4px; font-size: 0.75rem; color: #94a3b8; margin-bottom: 12px; }
   </style>
 </head>
 <body>
 
-  <!-- PHASE 1: INSTRUCTIONS & DEMOGRAPHICS -->
+  <!-- 1. INSTRUCTIONS SCREEN -->
   <div id="intro-screen" class="container">
-    <h2>Studie zur Wahrnehmung von Video-Inhalten</h2>
-    <p>Vielen Dank für deine Teilnahme! Im Rahmen dieser Untersuchung wirst du dir eine Reihe kurzer Videos ansehen. Deine Aufgabe ist es, die Videos aufmerksam zu verfolgen.</p>
-    <p><em>Bitte konzentriere dich voll auf die Inhalte und verwende währenddessen keine Uhren oder das Smartphone.</em></p>
+    <span class="badge">Human Factors Lab</span>
+    <h2>Video-Wahrnehmungsstudie</h2>
+    <p>Vielen Dank für deine Teilnahme! Du wirst dir gleich eine Reihe kurzer Videoclips ansehen. Bitte verfolge die Inhalte aufmerksam.</p>
+    <p><em>Wichtig: Bitte verwende während des Experiments keine Hilfsmittel wie Uhren oder Smartphones.</em></p>
     
     <div class="input-group">
-      <label for="pid">Teilnehmer-ID / Pseudonym:</label>
+      <label for="pid">Teilnehmer-ID / Code:</label>
       <input type="text" id="pid" placeholder="z. B. VP_01" required>
     </div>
     <div class="input-group">
@@ -70,92 +78,99 @@
         <option value="never">Nie</option>
       </select>
     </div>
-    <button onclick="startExperiment()">Experiment starten</button>
+    <button onclick="startExperiment()">Experiment starten ➔</button>
   </div>
 
-  <!-- PHASE 2: SHORT-FORM FEED INTERFACE -->
+  <!-- 2. SHORT-FORM FEED SCREEN -->
   <div id="feed-screen">
-    <video id="video-player" playsinline></video>
+    <!-- Echter Video Player (wird genutzt wenn Videos hinterlegt sind) -->
+    <video id="video-player" playsinline muted style="display: none;"></video>
     
-    <!-- Friction Overlay (nur aktiv für Gruppe B) -->
+    <!-- Dummy Ersatz-Player (läuft automatisch, solange ihr keine Videos habt) -->
+    <div id="dummy-video">
+      <h3 id="dummy-title" style="font-size: 1.5rem; margin-bottom: 8px;">Video #1</h3>
+      <p id="dummy-desc" style="color: #94a3b8; font-size: 0.85rem;">[Demo-Inhalt läuft...]</p>
+      <div class="dummy-progress"><div id="dummy-bar" class="dummy-bar"></div></div>
+    </div>
+    
+    <!-- Friction Stopping Cue (erscheint nur in Gruppe B) -->
     <div id="friction-overlay" class="overlay-friction">
-      <p style="margin-bottom: 20px; font-size: 1.1rem;">Video beendet.</p>
-      <button onclick="playNextFrictionVideo()">Nächstes Video abspielen ➔</button>
+      <p style="font-size: 1.1rem; font-weight: bold; margin-bottom: 8px;">Video beendet.</p>
+      <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px;">Möchtest du weiterschauen?</p>
+      <button onclick="nextVideo()">Nächstes Video abspielen ➔</button>
     </div>
   </div>
 
-  <!-- PHASE 3: QUESTIONNAIRE (TIME, AGENCY, FRUSTRATION) -->
+  <!-- 3. QUESTIONNAIRE SCREEN -->
   <div id="questionnaire-screen" class="container hidden">
     <h2>Abschlussbefragung</h2>
-    <p>Die Video-Phase ist beendet. Bitte beantworte nun die folgenden Fragen spontan und ehrlich.</p>
+    <p>Die Videophase ist vorbei. Bitte beantworte die Fragen spontan nach deinem persönlichen Eindruck:</p>
 
-    <!-- 1. RETROSPECTIVE TIME ESTIMATION (Jiang et al., 2025) -->
+    <!-- ZEITSCHÄTZUNG -->
     <div class="likert-item" style="border-top: 2px solid var(--accent); padding-top: 14px;">
       <label style="color: var(--accent); font-size: 1rem;">1. Subjektive Zeitschätzung</label>
-      <p style="font-size: 0.9rem; margin-top: 4px;">Wie viele <strong>Minuten und Sekunden</strong> hast du deiner Schätzung nach gerade eben Videos geschaut?</p>
-      <div style="display: flex; gap: 10px;">
-        <input type="number" id="est-min" placeholder="Minuten (z.B. 4)" min="0" max="60" style="flex: 1;" required>
-        <input type="number" id="est-sec" placeholder="Sekunden (z.B. 30)" min="0" max="59" style="flex: 1;" required>
+      <p style="font-size: 0.85rem; margin-top: 4px;">Wie viele <strong>Minuten und Sekunden</strong> hast du deiner Schätzung nach gerade eben Videos geschaut?</p>
+      <div style="display: flex; gap: 10px; margin-top: 8px;">
+        <input type="number" id="est-min" placeholder="Minuten" min="0" max="60" style="flex: 1;" required>
+        <input type="number" id="est-sec" placeholder="Sekunden" min="0" max="59" style="flex: 1;" required>
       </div>
     </div>
 
-    <!-- 2. SENSE OF AGENCY (Monge Roffarello & De Luca, 2026) -->
+    <!-- SENSE OF AGENCY -->
     <div class="likert-item">
-      <label>2. „Ich hatte das Gefühl, jederzeit die bewusste Kontrolle darüber zu haben, wann das nächste Video beginnt.“</label>
+      <label>2. „Ich hatte die bewusste Kontrolle darüber, wann das nächste Video beginnt.“</label>
       <div class="likert-scale" id="agency1"></div>
     </div>
     <div class="likert-item">
-      <label>3. „Das Interface hat mich dazu gedrängt, einfach weiterzuschauen.“ (rekodiert)</label>
+      <label>3. „Das Interface hat mich dazu verleitet, gedankenlos weiterzuschauen.“ (rekodiert)</label>
       <div class="likert-scale" id="agency2"></div>
     </div>
     <div class="likert-item">
-      <label>4. „Ich habe mich beim Anschauen aktiv und selbstbestimmt gefühlt.“</label>
+      <label>4. „Ich habe mich während des Schauens selbstbestimmt gefühlt.“</label>
       <div class="likert-scale" id="agency3"></div>
     </div>
 
-    <!-- 3. UX / FRUSTRATION (Ruiz et al., 2024 / NASA-TLX) -->
+    <!-- FRUSTRATION -->
     <div class="likert-item">
       <label>5. „Wie anstrengend oder frustrierend fandest du die Bedienung des Feeds?“</label>
       <div class="likert-scale" id="frustration"></div>
     </div>
 
-    <button onclick="submitData()">Daten speichern & CSV herunterladen</button>
+    <button onclick="submitData()">Daten speichern (CSV-Download)</button>
   </div>
 
-  <!-- PHASE 4: DEBRIEFING -->
+  <!-- 4. DEBRIEF SCREEN -->
   <div id="debrief-screen" class="container hidden">
     <h2>Vielen Dank!</h2>
     <p>Deine Daten wurden erfolgreich erfasst und als CSV-Datei heruntergeladen.</p>
-    <p style="font-size: 0.85rem; color: #94a3b8;"><strong>Aufklärung:</strong> In dieser Untersuchung ging es nicht um die Inhalte der Videos, sondern um den Einfluss von Interaktions-Friktion auf die <em>Verzerrung der Zeitwahrnehmung</em> und das <em>Gefühl von Handlungskontrolle (Agency)</em>.</p>
+    <p style="font-size: 0.85rem; color: #94a3b8;"><strong>Hintergrund:</strong> Diese Untersuchung erforscht den Einfluss von Interaktions-Friktion auf die Verzerrung der subjektiven Zeitwahrnehmung (Time Distortion) und das Gefühl von Handlungskontrolle (Agency).</p>
   </div>
 
   <script>
     /* =========================================================
-       KONFIGURATION DES EXPERIMENTS
+       EINSTELLUNGEN FÜR EUER EXPERIMENT
        ========================================================= */
-    // Dauer der Videophase in Sekunden (z. B. 420 für exakt 7 Minuten, zum Testen z. B. 30)
-    const EXPERIMENT_DURATION_SECONDS = 420; 
+    // DAUER: Zum Testen steht hier jetzt 30 Sekunden!
+    // Für die echte Studie später einfach auf 420 (7 Minuten) ändern:
+    const EXPERIMENT_DURATION_SECONDS = 30; 
 
-    // Pool von Beispiel-Vertikalvideos (Royalty-free Pexels/Wikimedia CDN URLs)
-    // Ihr könnt hier einfach eigene MP4-Pfade (z. B. "videos/vid1.mp4") eintragen!
-    const videoPool = [
-      "https://assets.mixkit.co/videos/preview/mixkit-vertical-view-of-waves-coming-to-the-beach-40018-large.mp4",
-      "https://assets.mixkit.co/videos/preview/mixkit-hands-holding-a-smartphone-vertical-view-41221-large.mp4",
-      "https://assets.mixkit.co/videos/preview/mixkit-man-walking-down-a-street-in-a-city-vertical-40890-large.mp4",
-      "https://assets.mixkit.co/videos/preview/mixkit-vertical-view-of-a-skater-performing-a-trick-41120-large.mp4",
-      "https://assets.mixkit.co/videos/preview/mixkit-young-woman-taking-photos-with-a-camera-vertical-view-40879-large.mp4"
-    ];
+    // EIGENE VIDEOS HIER EINTRAGEN:
+    // Wenn dieses Array leer bleibt [], schaltet die App automatisch
+    // auf den Demo-Modus um! Sobald ihr Videos habt (z.B. ["vid1.mp4", "vid2.mp4"]),
+    // trägt ihr sie hier ein.
+    const myVideos = []; 
 
     /* =========================================================
-       EXPERIMENT-LOGIK & DATENERFASSUNG
+       LOGIK & DATENERFASSUNG
        ========================================================= */
-    let condition = ""; // "A_Frictionless" oder "B_Friction"
-    let currentVideoIndex = 0;
+    let condition = ""; 
+    let currentIdx = 0;
     let startTime = null;
     let actualElapsedSeconds = 0;
     let timerInterval = null;
+    let dummyInterval = null;
 
-    // Likert Skalen rendern (1 = Gar nicht, 7 = Vollkommen)
+    // Likert-Skalen (1 bis 7)
     function renderLikert(containerId, name) {
       const container = document.getElementById(containerId);
       container.innerHTML = "";
@@ -168,7 +183,6 @@
         `;
       }
     }
-
     renderLikert("agency1", "q_agency1");
     renderLikert("agency2", "q_agency2");
     renderLikert("agency3", "q_agency3");
@@ -176,9 +190,9 @@
 
     function startExperiment() {
       const pid = document.getElementById("pid").value.trim();
-      if (!pid) { alert("Bitte gib eine Teilnehmer-ID ein!"); return; }
+      if (!pid) { alert("Bitte eine Teilnehmer-ID eingeben!"); return; }
 
-      // 50:50 Randomisierung der Bedingung
+      // 50:50 Randomisierung: Gruppe A (Autoplay) vs. Gruppe B (Friction)
       condition = Math.random() < 0.5 ? "A_Frictionless" : "B_Friction";
 
       document.getElementById("intro-screen").classList.add("hidden");
@@ -186,47 +200,78 @@
       feed.style.display = "flex";
 
       startTime = Date.now();
-      playVideo(currentVideoIndex);
+      playCurrentItem();
 
-      // Globaler Timer zur Beendigung der Video-Phase
+      // Timer für das Gesamt-Experiment
       timerInterval = setInterval(() => {
         const elapsed = (Date.now() - startTime) / 1000;
         if (elapsed >= EXPERIMENT_DURATION_SECONDS) {
           endVideoPhase();
         }
-      }, 500);
+      }, 300);
     }
 
-    const player = document.getElementById("video-player");
-    const overlay = document.getElementById("friction-overlay");
+    const videoPlayer = document.getElementById("video-player");
+    const dummyPlayer = document.getElementById("dummy-video");
+    const dummyBar = document.getElementById("dummy-bar");
+    const frictionOverlay = document.getElementById("friction-overlay");
 
-    function playVideo(index) {
-      player.src = videoPool[index % videoPool.length];
-      player.play().catch(e => console.log("User gesture needed for audio:", e));
-    }
+    const colors = ["#4f46e5", "#0891b2", "#059669", "#d97706", "#dc2626", "#7c3aed"];
 
-    // Video beendet Event
-    player.onended = () => {
-      currentVideoIndex++;
-      if (condition === "A_Frictionless") {
-        // Gruppe A: Sofortiges Autoplay des nächsten Videos
-        playVideo(currentVideoIndex);
+    function playCurrentItem() {
+      frictionOverlay.style.display = "none";
+
+      if (myVideos.length > 0) {
+        // Echte Videos abspielen
+        dummyPlayer.style.display = "none";
+        videoPlayer.style.display = "block";
+        videoPlayer.src = myVideos[currentIdx % myVideos.length];
+        videoPlayer.play().catch(e => console.log(e));
       } else {
-        // Gruppe B: Stopp + Zeigen des Friction-Buttons
-        overlay.style.display = "flex";
+        // DEMO-MODUS (Bunte Kacheln mit 6 Sekunden Dauer pro Video)
+        videoPlayer.style.display = "none";
+        dummyPlayer.style.display = "flex";
+        dummyPlayer.style.background = colors[currentIdx % colors.length];
+        document.getElementById("dummy-title").innerText = `Video #${currentIdx + 1}`;
+        
+        let progress = 0;
+        dummyBar.style.width = "0%";
+        clearInterval(dummyInterval);
+        
+        dummyInterval = setInterval(() => {
+          progress += 5; // 20 Schritte = ca. 5-6 Sekunden pro Video
+          dummyBar.style.width = progress + "%";
+          if (progress >= 100) {
+            clearInterval(dummyInterval);
+            onVideoFinished();
+          }
+        }, 250);
       }
-    };
+    }
 
-    function playNextFrictionVideo() {
-      overlay.style.display = "none";
-      playVideo(currentVideoIndex);
+    videoPlayer.onended = onVideoFinished;
+
+    function onVideoFinished() {
+      currentIdx++;
+      if (condition === "A_Frictionless") {
+        // Gruppe A: Sofort weiter
+        playCurrentItem();
+      } else {
+        // Gruppe B: Stoppen und Button anzeigen
+        frictionOverlay.style.display = "flex";
+      }
+    }
+
+    function nextVideo() {
+      playCurrentItem();
     }
 
     function endVideoPhase() {
       clearInterval(timerInterval);
+      clearInterval(dummyInterval);
       actualElapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
-      player.pause();
-
+      
+      videoPlayer.pause();
       document.getElementById("feed-screen").style.display = "none";
       document.getElementById("questionnaire-screen").classList.remove("hidden");
     }
@@ -235,10 +280,9 @@
       const min = parseInt(document.getElementById("est-min").value);
       const sec = parseInt(document.getElementById("est-sec").value) || 0;
 
-      if (isNaN(min)) { alert("Bitte gib deine Zeitschätzung ein!"); return; }
+      if (isNaN(min)) { alert("Bitte gib eine Zeitschätzung in Minuten ein!"); return; }
 
       const estimatedTotalSeconds = (min * 60) + sec;
-      // Time Estimation Ratio: < 1.0 bedeutet Zeitunterschätzung (Time flew by)
       const ter = (estimatedTotalSeconds / actualElapsedSeconds).toFixed(3);
 
       const agency1 = document.querySelector('input[name="q_agency1"]:checked').value;
@@ -246,7 +290,6 @@
       const agency3 = document.querySelector('input[name="q_agency3"]:checked').value;
       const frustration = document.querySelector('input[name="q_frustration"]:checked').value;
 
-      // Datensatz vorbereiten
       const row = {
         participant_id: document.getElementById("pid").value,
         age: document.getElementById("age").value || "NA",
@@ -256,7 +299,7 @@
         estimated_duration_sec: estimatedTotalSeconds,
         time_estimation_ratio_TER: ter,
         agency_score_1: agency1,
-        agency_score_2_recoded: 8 - parseInt(agency2), // invertiert für Auswertung
+        agency_score_2_recoded: 8 - parseInt(agency2),
         agency_score_3: agency3,
         frustration_score: frustration,
         timestamp: new Date().toISOString()
@@ -276,11 +319,14 @@
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `study_data_${dataObj.participant_id}_${dataObj.condition}.csv`);
+      link.setAttribute("download", `data_${dataObj.participant_id}_${dataObj.condition}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
+  </script>
+</body>
+</html>
   </script>
 </body>
 </html>
